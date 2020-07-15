@@ -1,0 +1,166 @@
+
+Product page for ASIN B078PSH6PS has already been saved.
+
+Product page for ASIN B0187LW0A6 has already been saved.
+
+Product page for ASIN B00GVLJLTI has already been saved.
+
+Product page for ASIN B00K2323LE has already been saved.
+
+Product page for ASIN B074KHBG4G has already been saved.
+
+Product page for ASIN B00GVLJLS4 has already been saved.
+
+Product page for ASIN B01LYMWMAG has already been saved.
+
+Product page for ASIN B00ULISGHA has already been saved.
+
+Product page for ASIN B07C2Q6W9Q has already been saved.
+
+Product page for ASIN B07J2Q3YZH has already been saved.
+
+Product page for ASIN B07HCTT432 has already been saved.
+
+Product page for ASIN B07DTLVHW7 has already been saved.
+
+Product page for ASIN B07DTMMDRB has already been saved.
+
+Product page for ASIN B07JCFWJ98 has already been saved.
+
+Product page for ASIN B07SHCCRJ6 has already been saved.
+
+Product page for ASIN B07XL4VHJC has already been saved.
+
+Product page for ASIN B07SSFGC5S has already been saved.
+
+Product page for ASIN B07HQTRRCN has already been saved.
+
+Product page for ASIN B07RT87VLW has already been saved.
+
+Product page for ASIN B07TGTLPMQ has already been saved.
+
+Product page for ASIN B07V9JG1QK has already been saved.
+
+Product page for ASIN B07W55XXHM has already been saved.
+
+Product page for ASIN B07SWSD36F has already been saved.
+
+Product page for ASIN B07SWR9H4R has already been saved.
+
+Scraping page for ASIN B07MPLHY74 (25 of 72)...
+Page for ASIN B07MPLHY74 retrieved successfully!
+Next request after 50 seconds...
+
+Product page for ASIN B07MJ6M796 has already been saved.
+
+Product page for ASIN B07JC6JPB7 has already been saved.
+
+Product page for ASIN B07NZC9B16 has already been saved.
+
+Product page for ASIN B07QMDN96Q has already been saved.
+
+Product page for ASIN B07QX2MCD8 has already been saved.
+
+Product page for ASIN B07QY341LV has already been saved.
+
+Product page for ASIN B07QY3CD6K has already been saved.
+
+Product page for ASIN B07V8KRQ4J has already been saved.
+
+Product page for ASIN B07H116F9Y has already been saved.
+
+Product page for ASIN B07DTLF9NL has already been saved.
+
+Scraping page for ASIN B07DTJNGX4 (36 of 72)...
+Page for ASIN B07DTJNGX4 retrieved successfully!
+Next request after 40 seconds...
+
+Product page for ASIN B071JQC2LG has already been saved.
+
+Product page for ASIN B07733V27Q has already been saved.
+
+Product page for ASIN B078J48W1C has already been saved.
+
+Product page for ASIN B0743L67HG has already been saved.
+
+Product page for ASIN B00DVPS4IQ has already been saved.
+
+Product page for ASIN B01AO6SG6Y has already been saved.
+
+Product page for ASIN B00O9P2VLI has already been saved.
+
+Product page for ASIN B00TYSQY5O has already been saved.
+
+Product page for ASIN B00E5I16BK has already been saved.
+
+Product page for ASIN B00ETBOAAC has already been saved.
+
+Product page for ASIN B00HS1MESA has already been saved.
+
+Product page for ASIN B00OR75RIM has already been saved.
+
+Scraping page for ASIN B01ETNF300 (49 of 72)...
+Couldn't retrieve product page for ASIN B01ETNF300
+Next request after 50 seconds...
+
+Product page for ASIN B00F3IH58Y has already been saved.
+
+Product page for ASIN B00SXCX1TO has already been saved.
+
+Product page for ASIN B013TS19OU has already been saved.
+
+Product page for ASIN B01MXSPBUW has already been saved.
+
+Scraping page for ASIN B00VS9FTJE (54 of 72)...
+Page for ASIN B00VS9FTJE retrieved successfully!
+Next request after 40 seconds...
+
+Scraping page for ASIN B00KGOQH8E (55 of 72)...
+Page for ASIN B00KGOQH8E retrieved successfully!
+Next request after 30 seconds...
+
+Scraping page for ASIN B00WTIDY8Q (56 of 72)...
+Page for ASIN B00WTIDY8Q retrieved successfully!
+Next request after 20 seconds...
+
+Product page for ASIN B01M0MW0Z6 has already been saved.
+
+Product page for ASIN B017TF6F3O has already been saved.
+
+Product page for ASIN B07H317W21 has already been saved.
+
+Product page for ASIN B07F1RRNYQ has already been saved.
+
+Product page for ASIN B07D6RNHSJ has already been saved.
+
+Product page for ASIN B01MT6PDN0 has already been saved.
+
+Scraping page for ASIN B07GTPCSPL (63 of 72)...
+Page for ASIN B07GTPCSPL retrieved successfully!
+Next request after 10 seconds...
+
+Scraping page for ASIN B07CRZQ9MY (64 of 72)...
+Couldn't retrieve product page for ASIN B07CRZQ9MY
+Next request after 20 seconds...
+
+Product page for ASIN B07CVD2GGM has already been saved.
+
+Product page for ASIN B076KQ41XH has already been saved.
+
+Product page for ASIN B00DJQ0Z0M has already been saved.
+
+Product page for ASIN B07CM8J4NC has already been saved.
+
+Product page for ASIN B07CX3GRY1 has already been saved.
+
+Product page for ASIN B07CX3FHM1 has already been saved.
+
+Product page for ASIN B000Q5NG78 has already been saved.
+
+Product page for ASIN B017XKQUXU has already been saved.
+
+Pages for 2 ASINs have not been scraped:
+B01ETNF300, B07CRZQ9MY
+Restart this module to reattempt scraping for these ASINs.
+
+Process finished with exit code 0
