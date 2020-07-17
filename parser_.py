@@ -7,57 +7,46 @@ class Parser:
     def __init__(self, raw_html):
         self.raw_html = unescape(raw_html)
 
-    def _find_with_regex(self, regex, target_group=0):
+    def _by_regex(self, regex, target_group=0,
+                  convert_into=None, if_none_return=None):
         compiled_regex = re.compile(regex, flags=re.UNICODE)
         match_object = compiled_regex.search(self.raw_html)
         if match_object is None:
-            return None
-        return match_object.groups()[target_group]
+            return if_none_return
+        match_group = match_object.groups()[target_group]
+        if convert_into == float:
+            return float(match_group.strip())
+        elif convert_into == int:
+            return int(match_group.replace(",", "").strip())
+        else:
+            return match_group
 
 
 class ProductInfoParser(Parser):
 
     def __init__(self, raw_html):
         super().__init__(raw_html)
-        self.asin = self._find_with_regex(
+        self.asin = self._by_regex(
             r'<input type="hidden" id="ASIN" name="ASIN" value="(.*?)">'
         )
-        self.product_name = self._find_with_regex(
+        self.product_name = self._by_regex(
             r'<title>(Amazon.com\s?:\s?)?(.+?)( - - Amazon.com)?</title>',
             target_group=1
         )
-        self.ratings = self._get_ratings()
-        self.average_rating = self._get_average_rating()
-        self.answered_questions = self._get_answered_questions()
-
-    def _get_ratings(self):
-        ratings_str = self._find_with_regex(
+        self.ratings = self._by_regex(
             r'<span id="acrCustomerReviewText" '
-            r'class="a-size-base">(.*?) ratings</span>'
+            r'class="a-size-base">(.*?) ratings</span>',
+            convert_into=int
         )
-        if ratings_str is None:
-            return None
-        ratings_int = int(ratings_str.replace(",", "").strip())  # todo try except
-        return ratings_int
-
-    def _get_average_rating(self):
-        average_rating_str = self._find_with_regex(
+        self.average_rating = self._by_regex(
             r'<span id="acrPopover" class="reviewCountTextLinkedHistogram '
-            r'noUnderline" title="(.*?) out of 5 stars">'
+            r'noUnderline" title="(.*?) out of 5 stars">',
+            convert_into=float
         )
-        if average_rating_str is None:
-            return None
-        average_rating_float = float(average_rating_str.strip())  # todo try except
-        return average_rating_float
-
-    def _get_answered_questions(self):
-        answered = self._find_with_regex(
-            r'<span class="a-size-base">\n(.*?) answered questions\n</span>'
+        self.answered_questions = self._by_regex(
+            r'<span class="a-size-base">\n(.*?) answered questions\n</span>',
+            convert_into=int, if_none_return=0
         )
-        if answered is None:
-            return 0
-        answered_int = int(answered.replace(",", "").strip())
-        return answered_int
 
 
 class ProductReviewParser(Parser):
