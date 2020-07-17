@@ -80,8 +80,8 @@ class ProductInfoScraper:
             if not os.path.exists(self.cache_dir):
                 os.mkdir(self.cache_dir)
         if use_cache and self._already_cached():
-            print(f"Product page for ASIN {self.asin} was cached before.")
             product_html = self._get_product_html_from_cache()
+            print(f"Product page for ASIN {self.asin} retrieved from cache.")
         else:
             print(f"Scraping page for ASIN {self.asin}...")
             product_html = self._get_product_html_from_web()
@@ -94,7 +94,7 @@ class ProductInfoScraper:
                 if use_cache:
                     self._cache_product_html(product_html)
             if iteration > 0:
-                print(f"Next request after {self.delay} seconds...\n")
+                print(f"Next request after {self.delay} seconds...")
                 time.sleep(self.delay)
         return product_html
 

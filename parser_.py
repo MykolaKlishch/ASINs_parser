@@ -10,12 +10,21 @@ def to_float(match_string):
     return float(match_string.strip())
 
 
-class Parser:   # todo 2 classes can be merged into one!!!
+class Parser:
 
-    """Abstract parser class"""
+    """Parser class with 2 methods for parsing 2 kinds of html
+    (results saved in the same object)"""
 
-    def __init__(self, raw_html):
-        self.raw_html = unescape(raw_html)
+    def __init__(self):
+        self.raw_html = None
+        self.asin = None
+        self.product_name = None
+        self.total_ratings = None
+        self.average_rating = None
+        self.answered_questions = None
+        self.total_reviews = None
+        self.positive_reviews = None
+        self.critical_reviews = None
 
     def _by_regex(self, regex, target_group=0, *,
                   convert=None, if_none_return=None):
@@ -27,15 +36,8 @@ class Parser:   # todo 2 classes can be merged into one!!!
             return match_group
         return convert(match_group)
 
-    def parse(self, raw_html):
-        """Alternative interface to feed the parser"""
-        self.__init__(raw_html)
-
-
-class ProductInfoParser(Parser):
-
-    def __init__(self, raw_html):
-        super().__init__(raw_html)
+    def parse_product_info(self, raw_html):
+        self.raw_html = unescape(raw_html)
         self.asin = self._by_regex(
             r'<input type="hidden" id="ASIN" name="ASIN" value="(.*?)">'
         )
@@ -59,19 +61,8 @@ class ProductInfoParser(Parser):
             convert=to_int, if_none_return=0
         )
 
-    def show_parsing_results(self):
-        """to be called after parsing for - diagnostics"""
-        print("# asin:\t\t\t\t", self.asin)
-        print("# product_name:\t\t", self.product_name)
-        print("# ratings:\t\t\t", self.total_ratings)
-        print("# average_rating:\t", self.average_rating)
-        print("# answered_questions:", self.answered_questions)
-
-
-class ProductReviewsParser(Parser):
-
-    def __init__(self, raw_html):
-        super().__init__(raw_html)
+    def parse_product_reviews(self, raw_html):
+        self.raw_html = unescape(raw_html)
         self.total_reviews = self._by_regex(
             r'Showing [-\d]+ of (.*?) reviews',
             convert=to_int, if_none_return=0
@@ -86,8 +77,12 @@ class ProductReviewsParser(Parser):
         )
 
     def show_parsing_results(self):
-        """to be called after parsing - for diagnostics"""
-        print("$ total_reviews", self.total_reviews)
-        print("$ positive_reviews", self.positive_reviews)
-        print("$ critical_reviews", self.critical_reviews)
-
+        """to be called after parsing for - diagnostics"""
+        print("# asin:\t\t\t\t\t", self.asin)
+        print("# product_name:\t\t\t", self.product_name)
+        print("# ratings:\t\t\t\t", self.total_ratings)
+        print("# average_rating:\t\t", self.average_rating)
+        print("# answered_questions:\t", self.answered_questions)
+        print("$ total_reviews\t\t\t", self.total_reviews)
+        print("$ positive_reviews\t\t", self.positive_reviews)
+        print("$ critical_reviews\t\t", self.critical_reviews)

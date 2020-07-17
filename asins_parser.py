@@ -2,7 +2,7 @@
 #  in ArgumentParser object as well
 
 # todo rename this module
-#  parsers.py is a good name but if this module is named asins_parser.py
+#  parser_.py is a good name but if this module is named asins_parser.py
 #  it creates confusion
 
 import argparse
@@ -18,7 +18,7 @@ import sys
 from typing import Union, List, Sequence, NoReturn
 
 from scraper import ProductInfoScraper, ProductReviewsScraper
-from parsers import ProductInfoParser, ProductReviewsParser
+from parser_ import Parser
 
 DEFAULT_FILENAME = os.path.join(os.getcwd(), "Asins sample.csv")
 
@@ -62,13 +62,17 @@ def get_asins_from_csv_file(filename: str) -> List[str]:
         return asins
 
 
-def scrape_parse_and_print(asins, scraper_class, parser_class):
+def scrape_parse_and_print(asins, scraper_class):
     while asins:
         scraper = scraper_class()
         html_iterator = scraper.scrape_many(asins)
         for html in html_iterator:
             if html is not None:
-                parser = parser_class(html)
+                parser = Parser()
+                if isinstance(scraper, ProductInfoScraper):
+                    parser.parse_product_info(html)
+                if isinstance(scraper, ProductReviewsScraper):
+                    parser.parse_product_reviews(html)
                 parser.show_parsing_results()
         asins = scraper.unscraped_asins
 
@@ -80,12 +84,10 @@ def main():
     scrape_parse_and_print(
         asins=asins,
         scraper_class=ProductInfoScraper,
-        parser_class=ProductInfoParser
     )
     scrape_parse_and_print(
         asins=asins,
         scraper_class=ProductReviewsScraper,
-        parser_class=ProductReviewsParser
     )
 
     # engine = create_engine(
