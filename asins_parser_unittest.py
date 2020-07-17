@@ -4,7 +4,7 @@ from asins_parser import (
     DEFAULT_FILENAME,
     get_filename_from_cmd,
     valid_filename,
-    get_asins_from_csv,
+    get_asins_from_csv_file,
 )
 
 
@@ -47,9 +47,9 @@ class TestArgumentParsing(unittest.TestCase):
 
 class ValidateAsins(unittest.TestCase):
     """validates DEFAULT_FILENAME file contents,
-    not the get_asins_from_csv() function"""
+    not the get_asins_from_csv_file() function"""
     def test_asins_list(self):
-        asins_list = get_asins_from_csv
+        asins_list = get_asins_from_csv_file(DEFAULT_FILENAME)
         asins_set = set(asins_list)
         assert len(asins_list) == len(asins_set)
         for asin in asins_set:
