@@ -2,7 +2,7 @@
 #  in ArgumentParser object as well
 
 # todo rename this module
-#  parser_.py is a good name but if this module is named asins_parser.py
+#  _parser.py is a good name but if this module is named asins_parser.py
 #  it creates confusion
 
 import argparse
@@ -15,10 +15,10 @@ from sqlalchemy import (
     ForeignKey,
 )
 import sys
-from typing import Union, List, Sequence, NoReturn
+from typing import Union, List
 
-from scraper import ProductInfoScraper, ProductReviewsScraper
-from parser_ import Parser
+from _scrapers import ProductInfoScraper, ProductReviewsScraper
+from _parser import Parser
 
 DEFAULT_FILENAME = os.path.join(os.getcwd(), "Asins sample.csv")
 
@@ -78,7 +78,7 @@ def scrape_parse_and_print(asins, scraper_class):
 
 
 def main():
-    csv_filename = get_filename_from_cmd(args=["-i", "Asins sample.csv"])
+    csv_filename = get_filename_from_cmd()
     asins = get_asins_from_csv_file(csv_filename)
 
     scrape_parse_and_print(

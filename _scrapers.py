@@ -37,7 +37,7 @@ class AbstractScraper:
         self,
         apikey="132cacd0-c680-11ea-94f3-3173ea3a9b75",
         cache_dir=os.path.join(os.getcwd(), "cache"),
-        initial_delay=30, delay_delta=10
+        initial_delay=0, delay_delta=10
     ):
         self.apikey = apikey
         self.cache_dir = cache_dir
@@ -169,7 +169,7 @@ class AbstractScraper:
             in response_text)
         return not (exhausted or no_apikey or is_captcha_request)
 
-    def _cache_product_html(self, product_html: str):
+    def _cache_product_html(self, product_html: str) -> NoReturn:
         f_handle = open(file=self.cache_file, mode="wt", encoding="utf-8-sig")
         f_handle.write(product_html)
 
