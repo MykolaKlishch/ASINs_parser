@@ -61,23 +61,3 @@ class ProductReviewParser(Parser):
         self.review_number = None
         self.positive_review = None
         self.critical_review = None
-
-
-if __name__ == "__main__":
-    import os
-
-    filename = os.path.join(os.getcwd(), "cache", "B000Q5NG78.html")
-    product_info_html = open(filename, mode="rt", encoding="utf-8").read()
-    product_info = ProductInfoParser(product_info_html)
-    print(product_info.asin)
-    print(product_info.product_name)
-    print(product_info.ratings)
-    print(product_info.average_rating)
-    print(product_info.answered_questions)
-
-    # filename = os.path.join(os.getcwd(), "cache", "B000Q5NG78.html")
-    # product_review_html = open(filename, mode="rt", encoding="utf-8").read()
-    # product_reviews = ProductReviewParser(html)
-    # print(product_reviews.review_number)
-    # print(product_reviews.positive_review)
-    # print(product_reviews.critical_review)
