@@ -97,8 +97,8 @@ def main():
             print("# asin:\t\t\t\t", product_info.asin, sep="\t")
             print("# product_name:\t\t", product_info.product_name, sep="\t")
             print("# ratings:\t\t\t",
-                  product_info.ratings,
-                  type(product_info.ratings),
+                  product_info.total_ratings,
+                  type(product_info.total_ratings),
                   sep="\t")
             print("# average_rating:\t",
                   product_info.average_rating,

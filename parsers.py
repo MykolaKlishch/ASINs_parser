@@ -15,10 +15,9 @@ class Parser:
     def __init__(self, raw_html):
         self.raw_html = unescape(raw_html)
 
-    def _by_regex(self, regex, target_group=0,
+    def _by_regex(self, regex, target_group=0, *,
                   convert=None, if_none_return=None):
-        compiled_regex = re.compile(regex, flags=re.UNICODE)
-        match_object = compiled_regex.search(self.raw_html)
+        match_object = re.search(regex, self.raw_html, flags=re.UNICODE)
         if match_object is None:
             return if_none_return
         match_group = match_object.groups()[target_group]
@@ -38,7 +37,7 @@ class ProductInfoParser(Parser):
             r'<title>(Amazon.com\s?:\s?)?(.+?)( - - Amazon.com)?<\/title>',
             target_group=1
         )
-        self.ratings = self._by_regex(
+        self.total_ratings = self._by_regex(
             r'<span id="acrCustomerReviewText" '
             r'class="a-size-base">(.*?) ratings<\/span>',
             convert=to_int
@@ -59,7 +58,7 @@ class ProductReviewParser(Parser):
 
     def __init__(self, raw_html):
         super().__init__(raw_html)
-        self.all_reviews = self._by_regex(
+        self.total_reviews = self._by_regex(
             r'Showing [-\d]+ of (.*?) reviews',
             convert=to_int, if_none_return=0
         )
