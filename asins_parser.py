@@ -1,10 +1,20 @@
 # TODO add docstring - it will be used as description
 #  in ArgumentParser object as well
 
+# todo rename this module
+#  parser.py is a good name but if this module is named asins_parser.py
+#  it creates confusion
+
 import argparse
 import csv
 import os
 import requests
+from sqlalchemy import (
+    create_engine, MetaData,
+    Table, Column,
+    Integer, String,
+    ForeignKey,
+)
 import time
 from typing import Union, List, Sequence, NoReturn
 
@@ -172,6 +182,15 @@ def main():
         print(*retry_list, sep=", ")
         print("If you assume that products with such ASIN(s) do exist,\n"
               "you can retry scraping by restarting this module.")
+
+        # todo create this database earlier to insert ASINs into it
+        #  do not add invalid asins to database
+
+        engine = create_engine(
+            "postgres://postgres:1111@localhost:5432/postgres"
+        )
+        metadata = MetaData()
+        metadata.create_all(engine)
 
 
 if __name__ == "__main__":
