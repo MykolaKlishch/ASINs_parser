@@ -10,7 +10,9 @@ def to_float(match_string):
     return float(match_string.strip())
 
 
-class Parser:
+class Parser:   # todo 2 classes can be merged into one!!!
+
+    """Abstract parser class"""
 
     def __init__(self, raw_html):
         self.raw_html = unescape(raw_html)
@@ -24,6 +26,10 @@ class Parser:
         if convert is None:
             return match_group
         return convert(match_group)
+
+    def parse(self, raw_html):
+        """Alternative interface to feed the parser"""
+        self.__init__(raw_html)
 
 
 class ProductInfoParser(Parser):
@@ -53,8 +59,16 @@ class ProductInfoParser(Parser):
             convert=to_int, if_none_return=0
         )
 
+    def show_parsing_results(self):
+        """to be called after parsing for - diagnostics"""
+        print("# asin:\t\t\t\t", self.asin)
+        print("# product_name:\t\t", self.product_name)
+        print("# ratings:\t\t\t", self.total_ratings)
+        print("# average_rating:\t", self.average_rating)
+        print("# answered_questions:", self.answered_questions)
 
-class ProductReviewParser(Parser):
+
+class ProductReviewsParser(Parser):
 
     def __init__(self, raw_html):
         super().__init__(raw_html)
@@ -70,3 +84,10 @@ class ProductReviewParser(Parser):
             r'See all (.*?) critical reviews',
             convert=to_int, if_none_return=0
         )
+
+    def show_parsing_results(self):
+        """to be called after parsing - for diagnostics"""
+        print("$ total_reviews", self.total_reviews)
+        print("$ positive_reviews", self.positive_reviews)
+        print("$ critical_reviews", self.critical_reviews)
+

@@ -17,8 +17,8 @@ from sqlalchemy import (
 import sys
 from typing import Union, List, Sequence, NoReturn
 
-from scraper import Scraper
-from parsers import ProductInfoParser, ProductReviewParser
+from scraper import ProductInfoScraper, ProductReviewsScraper
+from parsers import ProductInfoParser, ProductReviewsParser
 
 DEFAULT_FILENAME = os.path.join(os.getcwd(), "Asins sample.csv")
 
@@ -62,51 +62,31 @@ def get_asins_from_csv_file(filename: str) -> List[str]:
         return asins
 
 
-def validate_asins_list(asins_list: Sequence[str]) -> NoReturn:
-    """Validates asins in the list: if they are unique
-    and if all values are in proper format.
-
-    :raise AssertionError: if validation fails.
-    """
-    # todo this function DOES NOT check if a particular ASIN actually exist
-    #  It may be a valid reason to rename the function
-    asins_set = set(asins_list)
-    assert len(asins_list) == len(asins_set)
-    assert "" not in asins_set
-    for asin in asins_set:
-        assert isinstance(asin, str)
-        assert len(asin) == 10
-        assert asin.strip() == asin
+def scrape_parse_and_print(asins, scraper_class, parser_class):
+    while asins:
+        scraper = scraper_class()
+        html_iterator = scraper.scrape_many(asins)
+        for html in html_iterator:
+            if html is not None:
+                parser = parser_class(html)
+                parser.show_parsing_results()
+        asins = scraper.unscraped_asins
 
 
 def main():
     csv_filename = get_filename_from_cmd(args=["-i", "Asins sample.csv"])
     asins = get_asins_from_csv_file(csv_filename)
-    validate_asins_list(asins)
-    # todo save them in database before scraping
-    #  upd: do NOT do it!!!
 
-    product_info_scraper = Scraper()
-    html_iterator = product_info_scraper.scrape_many(asins)
-    for product_info_html in html_iterator:
-        if product_info_html is not None:
-            product_info = ProductInfoParser(product_info_html)
-            print("# asin:\t\t\t\t", product_info.asin, sep="\t")
-            print("# product_name:\t\t", product_info.product_name, sep="\t")
-            print("# ratings:\t\t\t",
-                  product_info.total_ratings,
-                  type(product_info.total_ratings),
-                  sep="\t")
-            print("# average_rating:\t",
-                  product_info.average_rating,
-                  type(product_info.average_rating),
-                  sep="\t")
-            print("# answered_questions:",
-                  product_info.answered_questions,
-                  type(product_info.answered_questions),
-                  sep="\t")
-    print(product_info_scraper.unscraped_asins)
-    print(product_info_scraper.invalid_asins)
+    scrape_parse_and_print(
+        asins=asins,
+        scraper_class=ProductInfoScraper,
+        parser_class=ProductInfoParser
+    )
+    scrape_parse_and_print(
+        asins=asins,
+        scraper_class=ProductReviewsScraper,
+        parser_class=ProductReviewsParser
+    )
 
     # engine = create_engine(
     #     "postgres://postgres:1111@localhost:5432/postgres"
