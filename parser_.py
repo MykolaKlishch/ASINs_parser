@@ -3,6 +3,7 @@ from html import unescape
 
 
 def to_int(match_string):
+    """Can convert strings like 1,234 to int (1234)"""
     return int(match_string.replace(",", "").strip())
 
 
@@ -13,7 +14,8 @@ def to_float(match_string):
 class Parser:
 
     """Parser class with 2 methods for parsing 2 kinds of html
-    (results saved in the same object)"""
+    (results saved in the same object). Parsing is done with regexes.
+    """
 
     def __init__(self):
         self.raw_html = None
@@ -28,6 +30,15 @@ class Parser:
 
     def _by_regex(self, regex, target_group=0, *,
                   convert=None, if_none_return=None):
+        """Method used to extract values for all attributes
+        from raw html. Regexes differ, logic remains the same
+        :param regex: regular expression that is used for extraction
+        :param target_group: which group to retrieve (if regexes has
+        multiple groups)
+        :param convert: function to convert extracted string
+        :param if_none_return: value to return if no match found
+        :return: extracted [and transformed] value or if_none_return value.
+        """
         match_object = re.search(regex, self.raw_html, flags=re.UNICODE)
         if match_object is None:
             return if_none_return
