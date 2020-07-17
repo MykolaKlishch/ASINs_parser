@@ -8,27 +8,17 @@ class Parser:
         self.raw_html = unescape(raw_html)
 
     def _find_with_regex(self, regex, target_group=0):
-        flags = re.UNICODE
-        compiled_regex = re.compile(regex, flags=flags)
-        matches_found = compiled_regex.findall(self.raw_html)
-        # findall is used instead of search to check for multiple entries
-        # todo replacing findall with search will greatly simplify the method
-        print(matches_found)
-        if not matches_found:
+        compiled_regex = re.compile(regex, flags=re.UNICODE)
+        match_object = compiled_regex.search(self.raw_html)
+        if match_object is None:
             return None
-        assert len(set(matches_found)) == 1
-        single_match = matches_found.pop()
-        if isinstance(single_match, tuple):
-            single_match = single_match[target_group]
-        return single_match
+        return match_object.groups()[target_group]
 
 
 class ProductInfoParser(Parser):
 
     def __init__(self, raw_html):
         super().__init__(raw_html)
-        # TODO some strings have amp; in them
-        #  add function to remove it and other similar things
         self.asin = self._find_with_regex(
             r'<input type="hidden" id="ASIN" name="ASIN" value="(.*?)">'
         )
