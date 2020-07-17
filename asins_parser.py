@@ -2,7 +2,7 @@
 #  in ArgumentParser object as well
 
 # todo rename this module
-#  parser_.py is a good name but if this module is named asins_parser.py
+#  parsers.py is a good name but if this module is named asins_parser.py
 #  it creates confusion
 
 import argparse
@@ -18,7 +18,7 @@ import sys
 from typing import Union, List, Sequence, NoReturn
 
 from scraper import scraping_generator
-from parser_ import ProductInfoParser, ProductReviewParser
+from parsers import ProductInfoParser, ProductReviewParser
 
 DEFAULT_FILENAME = os.path.join(os.getcwd(), "Asins sample.csv")
 
