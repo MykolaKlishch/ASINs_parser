@@ -28,10 +28,10 @@ class Parser:
         self.positive_reviews = None
         self.critical_reviews = None
 
-    def _by_regex(self, regex, target_group=0, *,
-                  convert=None, if_none_return=None):
+    def _parse_with_regex(self, regex, target_group=0, *,
+                          convert=None, if_none_return=None):
         """Method used to extract values for all attributes
-        from raw html. Regexes differ, logic remains the same
+        from raw html. Regexes differ, logic remains the same.
         :param regex: regular expression that is used for extraction
         :param target_group: which group to retrieve (if regexes has
         multiple groups)
@@ -49,24 +49,24 @@ class Parser:
 
     def parse_product_info(self, raw_html):
         self.raw_html = unescape(raw_html)
-        self.asin = self._by_regex(
+        self.asin = self._parse_with_regex(
             r'<input type="hidden" id="ASIN" name="ASIN" value="(.*?)">'
         )
-        self.product_name = self._by_regex(
+        self.product_name = self._parse_with_regex(
             r'<title>(Amazon.com\s?:\s?)?(.+?)( - - Amazon.com)?<\/title>',
             target_group=1
         )
-        self.total_ratings = self._by_regex(
+        self.total_ratings = self._parse_with_regex(
             r'<span id="acrCustomerReviewText" '
             r'class="a-size-base">(.*?) ratings<\/span>',
             convert=to_int
         )
-        self.average_rating = self._by_regex(
+        self.average_rating = self._parse_with_regex(
             r'<span id="acrPopover" class="reviewCountTextLinkedHistogram '
             r'noUnderline" title="(.*?) out of 5 stars">',
             convert=to_float
         )
-        self.answered_questions = self._by_regex(
+        self.answered_questions = self._parse_with_regex(
             r'<span class="a-size-base">\n'
             r'(.*?)\+? answered questions\n<\/span>',
             convert=to_int, if_none_return=0
@@ -74,15 +74,15 @@ class Parser:
 
     def parse_product_reviews(self, raw_html):
         self.raw_html = unescape(raw_html)
-        self.total_reviews = self._by_regex(
+        self.total_reviews = self._parse_with_regex(
             r'Showing [-\d]+ of (.*?) reviews',
             convert=to_int, if_none_return=0
         )
-        self.positive_reviews = self._by_regex(
+        self.positive_reviews = self._parse_with_regex(
             r'See all (.*?) positive reviews',
             convert=to_int, if_none_return=0
         )
-        self.critical_reviews = self._by_regex(
+        self.critical_reviews = self._parse_with_regex(
             r'See all (.*?) critical reviews',
             convert=to_int, if_none_return=0
         )
