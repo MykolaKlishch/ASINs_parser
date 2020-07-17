@@ -1,10 +1,6 @@
 # TODO add docstring - it will be used as description
 #  in ArgumentParser object as well
 
-# todo rename this module
-#  _parser.py is a good name but if this module is named asins_parser.py
-#  it creates confusion
-
 import argparse
 import csv
 import os
