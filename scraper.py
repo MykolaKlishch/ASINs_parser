@@ -1,211 +1,183 @@
 import os
 import requests
 import time
-from typing import Union, NoReturn
+from typing import Iterator, Sequence, Union, NoReturn
 
 
 class ProductInfoScraper:
 
+    """This class provide two methods to scrape product info by ASIN(s).
+    Features:
+      * scraping for a single ASIN using or multiple ASINs at once
+        (using generator) with ProductInfoScraper.scrape_one() and
+        ProductInfoScraper.scrape_many() methods respectively;
+      * adaptive delay between requests;
+      * scraping is performed with the help or Zenscrape API;
+      * scraped pages can be cached in order to save request attempts
+        (Zenscrape API key (free tier) has a limit of 1000 requests/month);
+      * default caching directory can be overridden when creating
+        new parser instances;
+      * to disable cache, set use_cache=False when calling scraping methods;
+      * default Zenscrape API key is provided but can be changed
+        when creating new instances;
+      * ASINS that were not scraped for the first time are saved in
+        ProductInfoScraper.unscraped_asins
+      * Invalid ASINs (i.e. response with status code 404) are logged in
+        ProductInfoScraper.invalid_asins
+    """
+
+    target_url_template = "https://www.amazon.com/dp/{}"
+    cache_file_template = "{}.html"
+    zenscrape_url = "https://app.zenscrape.com/api/v1/get"
+
     def __init__(
         self,
         apikey="132cacd0-c680-11ea-94f3-3173ea3a9b75",
-        zenscrape_url="https://app.zenscrape.com/api/v1/get",
-        target_url_template="https://www.amazon.com/dp/{asin}"
-            # ProductReviewsParser will have different target_url_template
+        cache_dir=os.path.join(os.getcwd(), "cache"),
+        initial_delay=30, delay_delta=10
     ):
         self.apikey = apikey
-        self.zenscrape_url = zenscrape_url
-        self.target_url_template = target_url_template
-        self.asin = None  # scraper doesn't know about asins
-        # untill they are passed by the respective methods
+        self.cache_dir = cache_dir
+        self.asin = None
         self.cache_file = None
-        self.delay = 60
-        self.delay_delta = 10
-        self.cache_dir = None
-        self.retry_list = []
+        self.delay = initial_delay
+        self.delay_delta = delay_delta
+        self.unscraped_asins = []
+        self.invalid_asins = []
 
-    def _create_cache_folder(self, folder_name: str = "cache"):
-        self.cache_dir = os.path.join(os.getcwd(), folder_name)
-        if not os.path.exists(self.cache_dir):
-            os.mkdir(self.cache_dir)
+    def scrape_many(self, asins: Sequence[str],
+                    *, use_cache=True) -> Iterator:
+        """Generator which produces iterable of scraped
+        webpages and None values (for unsuccessful scraping).
 
-    def _set_cache_filename(self):
-        self.cache_file = os.path.join(self.cache_dir, f"{self.asin}.html")
+        :param asins: sequence of ASINs for scraping;
+        :param use_cache: if True: 1) raw html is being retrieved
+        from cached files and 2) scraped pages are being cached;
+        :return: iterator of str values (for successful scraping)
+        and None values (for unsuccessful scraping).
+        """
+        for iteration, asin in enumerate(asins):
+            print(f"\nASIN {asin} ({iteration + 1} of {len(asins)}):")
+            product_html = self.scrape_one(
+                asin, use_cache=use_cache, iteration=iteration)
+            yield product_html
+
+    def scrape_one(self, asin: str,
+                   *, use_cache=True, iteration=0) -> Union[str, None]:
+        """Performs scraping for a single ASIN.
+
+        :param asin: ASIN for scraping
+        :param use_cache: if True: 1) raw html is being retrieved
+        from cached files and 2) scraped pages are being cached;
+        :param iteration: if method is called from scrape_many,
+        this parameter is used to adjust delay
+        :return: raw html (for successful scraping)
+        or None (for unsuccessful scraping)
+        """
+        self.asin = asin
+        if use_cache:
+            self._set_cache_filename()
+            if not os.path.exists(self.cache_dir):
+                os.mkdir(self.cache_dir)
+        if use_cache and self._already_cached():
+            print(f"Product page for ASIN {self.asin} was cached before.")
+            product_html = self._get_product_html_from_cache()
+        else:
+            print(f"Scraping page for ASIN {self.asin}...")
+            product_html = self._get_product_html_from_web()
+            if self.asin in self.unscraped_asins:
+                print(f"Couldn't retrieve product page for ASIN {self.asin}")
+            elif self.asin in self.invalid_asins:
+                print(f"Product with ASIN {self.asin} does not exist!")
+            elif product_html is not None:
+                print(f"Page for ASIN {self.asin} retrieved successfully!")
+                if use_cache:
+                    self._cache_product_html(product_html)
+            if iteration > 0:
+                print(f"Next request after {self.delay} seconds...\n")
+                time.sleep(self.delay)
+        return product_html
+
+    def _set_cache_filename(self) -> NoReturn:
+        self.cache_file = os.path.join(
+            self.cache_dir, self.cache_file_template.format(self.asin))
 
     def _already_cached(self) -> bool:
         return os.path.isfile(self.cache_file)
 
-    def _get_product_html_from_cache(self):
+    def _get_product_html_from_cache(self) -> str:
         f_handle = open(file=self.cache_file, mode="rt", encoding="utf-8-sig")
         product_html = f_handle.read()
         return product_html
 
-    def _cache_product_html(self, product_html: str) -> NoReturn:
-        f_handle = open(file=self.cache_file, mode="wt", encoding="utf-8-sig")
-        f_handle.write(product_html)
+    def _get_product_html_from_web(self) -> Union[str, None]:
+        """Makes request, modifies Scraper instance
+        attributes and returns raw html or None
 
-    def get_product_html_from_web(self) -> Union[str, None]:
+        :return: raw html (for successful scraping)
+        or None (for unsuccessful scraping)
+        """
         response = requests.get(
             url=self.zenscrape_url, timeout=60,
             headers={"apikey": self.apikey},
             params={"url": self.target_url_template.format(self.asin)})
-        if response_is_valid(response):
+        self._adjust_delay_and_update_logs(response)
+        if self.asin not in self.unscraped_asins + self.invalid_asins:
             return response.text
-        if response.status_code == 404:
-            print(f"Product with ASIN {self.asin} does not exist! "
-                  f"Retrying scraping for it doesn't make any sense!")
         return None
 
+    def _adjust_delay_and_update_logs(
+            self, response: requests.Response) -> NoReturn:
+        """Modifies Scraper's instance delay and updates its logging
+        attributes (self.unscraped_asins and self.invalid_asins)
+        based on HTTP response:
+        1. Logs ASIN as invalid if response status code is 404.
+        2. Logs ASINs for unsuccessful attempts as well.
+        3. Decreases delay after successful request (status code is 200
+        and the text can be passed to parser).
+        4. Increases delay after unsuccessful request. Request is
+        considered unsuccessful if a) status code is neither 200
+        nor 404 or b) status code is 200 but the text from response
+        cannot be passed to parser because its contents are different
+        from expected.
+        :param response: requests.Response instance to be analyzed.
+        :return: None
+        """
+        status = response.status_code
+        if status == 200 and self._text_is_ok(response.text):
+            if self.delay >= self.delay_delta:
+                self.delay -= self.delay_delta
+        if (status == 200 and not self._text_is_ok(response.text)
+                or status not in (200, 404)):
+            self.unscraped_asins.append(self.asin)
+            self.delay += self.delay_delta
+        if status == 404:
+            self.invalid_asins.append(self.asin)
+
     @staticmethod
-    def response_is_valid(response: requests.Response) -> bool:
-        # todo implement specific behaviour for status_code 404
-        #  (Error 404 means that product with such ASIN does not exist)
-        status_is_ok = response.status_code == 200
-        not_exhausted = (
-            '{"error":"Not enough requests."}' not in response.text)
-        key_provided = (
-            '{"error":"No apikey provided."}' not in response.text)
-        is_not_captcha_request = (
+    def _text_is_ok(response_text) -> bool:
+        """Checks text for response with status code == 200.
+        :return True if the text can be passed to parser, False otherwise.
+        """
+        exhausted = ('{"error":"Not enough requests."}' in response_text)
+        no_apikey = ('{"error":"No apikey provided."}' in response_text)
+        is_captcha_request = (
             "Sorry, we just need to make sure you're not a robot."
-            not in response.text)
-        return (
-            status_is_ok and not_exhausted
-            and key_provided and is_not_captcha_request
-        )
+            in response_text)
+        return not (exhausted or no_apikey or is_captcha_request)
 
-    def scrape_one(self, asin, use_cache=True):
-        if use_cache and self._already_cached():
-            print(f"Product page for ASIN {asin} has already been saved.")
-            product_html = self._get_product_html_from_cache()
-        else:
-            print(f"Scraping page for ASIN {self.asin}...")
-            product_html = get_product_html_from_web(asin)
-            if product_html is None:
-                print(f"Couldn't retrieve product page for ASIN {asin}")
-                self.retry_list.append(asin)
-                self.delay += self.delay_delta
-            else:
-                print(f"Page for ASIN {self.asin} retrieved successfully!")
-                if use_cache:
-                    self._cache_product_html(product_html)
-                if self.delay >= self.delay_delta:
-                    self.delay -= self.delay_delta
-        return product_html
-
-    def scrape_many(self, asins, use_cache=True):
-        if use_cache:
-            self._create_cache_folder()
-        for number, asin in enumerate(asins):
-
-            self.asin = asin
-            product_html = self.scrape_one(asin)
-            yield product_html
-            if number < len(asins):
-                print(f"Next request after {self.delay} seconds...")
-                time.sleep(self.delay)
+    def _cache_product_html(self, product_html: str):
+        f_handle = open(file=self.cache_file, mode="wt", encoding="utf-8-sig")
+        f_handle.write(product_html)
 
 
-def create_cache_folder(folder_name: str) -> str:
-    cache_dir = os.path.join(os.getcwd(), folder_name)
-    if not os.path.exists(cache_dir):
-        os.mkdir(cache_dir)
-    return cache_dir
+class ProductReviewsScraper(ProductInfoScraper):
 
+    """This class provide two methods to scrape product review data by ASIN(s).
+    Overriding 2 class-level attributes from superclass changes behaviour
+    of scraping methods - they retrieve different webpage for the same ASIN
+    and caches it under different name
+    """
 
-def already_cached(abs_filename: str) -> bool:
-    return os.path.isfile(abs_filename)
-
-
-def get_product_html_from_file(abs_filename: str) -> str:
-    file_handle = open(file=abs_filename, mode="rt", encoding="utf-8-sig")
-    product_html = file_handle.read()
-    return product_html
-
-
-def cache_product_html(product_html: str, abs_filename: str) -> NoReturn:
-    file_handle = open(file=abs_filename, mode="wt", encoding="utf-8-sig")
-    file_handle.write(product_html)
-
-
-def get_product_html_from_web(
-        asin: str,
-        apikey="132cacd0-c680-11ea-94f3-3173ea3a9b75") -> Union[str, None]:
-    zenscrape_url = "https://app.zenscrape.com/api/v1/get"
-    amazon_url = f"https://www.amazon.com/dp/{asin}"
-
-    response = requests.get(
-        url=zenscrape_url, timeout=60,
-        headers={"apikey": apikey},
-        params={"url": amazon_url}
-    )
-    if response_is_valid(response):
-        return response.text
-    if response.status_code == 404:
-        print(f"Product with ASIN {asin} does not exist! "
-              f"Retrying scraping for it doesn't make any sense!")
-    return None
-
-
-def response_is_valid(response: requests.Response) -> bool:
-    # todo implement specific behaviour for status_code 404
-    #  (Error 404 means that product with such ASIN does not exist)
-    status_is_ok = response.status_code == 200
-    not_exhausted = (
-        '{"error":"Not enough requests."}'
-        not in response.text
-    )
-    key_provided = (
-        '{"error":"No apikey provided."}'
-        not in response.text
-    )
-    is_not_captcha_request = (
-        "Sorry, we just need to make sure you're not a robot."
-        not in response.text
-    )
-    return (
-        status_is_ok and not_exhausted
-        and key_provided and is_not_captcha_request
-    )
-
-    # todo implement database caching instead temporary flat-file caching
-    #  Or maybe it is better to leave this functionality -
-    #  it allows manual checking
-    #  and removes dependence on zenscrape scraping quota
-
-
-def scraping_generator(asins):
-    """Yields html for each asin in the list"""
-    cache_dir = create_cache_folder("cache")
-    delay = 60
-    retry_list = []
-    for number, asin in enumerate(asins):
-        abs_filename = os.path.join(cache_dir, f"{asin}.html")
-        if already_cached(abs_filename):
-            print(f"\nProduct page for ASIN {asin} has already been saved.")
-            product_html = get_product_html_from_file(abs_filename)
-            yield product_html  # todo make a single yield
-        else:
-            print(f"\nScraping page for ASIN {asin} "
-                  f"({number + 1} of {len(asins)})...")
-            product_html = get_product_html_from_web(asin)
-            if product_html is None:
-                print(f"Couldn't retrieve product page for ASIN {asin}")
-                retry_list.append(asin)
-                delay += 10
-            else:
-                print(f"Page for ASIN {asin} retrieved successfully!")
-                cache_product_html(product_html, abs_filename)
-                if delay >= 10:
-                    delay -= 10
-            yield product_html
-            if number < len(asins):
-                print(f"Next request after {delay} seconds...")
-                time.sleep(delay)
-    if retry_list:
-        print(f"\nPages for {len(retry_list)} ASIN(s) have not been scraped:")
-        print(*retry_list, sep=", ")
-        print("If you assume that products with such ASIN(s) do exist,\n"
-              "you can retry scraping by restarting this module.")
-
-        # todo create this database earlier to insert ASINs into it
-        #  do not add invalid asins to database
+    target_url_template = "https://www.amazon.com/product-reviews/{}"
+    cache_file_template = "reviews-{}.html"

@@ -17,7 +17,7 @@ from sqlalchemy import (
 import sys
 from typing import Union, List, Sequence, NoReturn
 
-from scraper import scraping_generator
+from scraper import Scraper
 from parsers import ProductInfoParser, ProductReviewParser
 
 DEFAULT_FILENAME = os.path.join(os.getcwd(), "Asins sample.csv")
@@ -84,13 +84,10 @@ def main():
     asins = get_asins_from_csv_file(csv_filename)
     validate_asins_list(asins)
     # todo save them in database before scraping
+    #  upd: do NOT do it!!!
 
-    asins.remove("B01ETNF300")  # TEMPORARY!!!
-    asins.remove("B07CRZQ9MY")  # TEMPORARY!!!
-    # todo handle non-existing ASINS downstream
-
-    html_iterator = scraping_generator(asins)
-    print(html_iterator)
+    product_info_scraper = Scraper()
+    html_iterator = product_info_scraper.scrape_many(asins)
     for product_info_html in html_iterator:
         if product_info_html is not None:
             product_info = ProductInfoParser(product_info_html)
@@ -108,6 +105,8 @@ def main():
                   product_info.answered_questions,
                   type(product_info.answered_questions),
                   sep="\t")
+    print(product_info_scraper.unscraped_asins)
+    print(product_info_scraper.invalid_asins)
 
     # engine = create_engine(
     #     "postgres://postgres:1111@localhost:5432/postgres"
