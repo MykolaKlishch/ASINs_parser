@@ -4,7 +4,7 @@ import time
 from typing import Iterator, Sequence, Union, NoReturn
 
 
-class Scraper:
+class AbstractScraper:
 
     """This abstract class provide two methods to scrape webpages by ASIN(s).
     The class should be subclassed!!! Features (available in subclasses):
@@ -174,21 +174,17 @@ class Scraper:
         f_handle.write(product_html)
 
 
-class ProductInfoScraper(Scraper):
-
+class ProductInfoScraper(AbstractScraper):
     """Overriding 2 class-level attributes from superclass provides
     the ability to scrape product info data by ASIN(s).
     """
-
     target_url_template = "https://www.amazon.com/dp/{}"
     cache_file_template = "{}.html"
 
 
-class ProductReviewsScraper(ProductInfoScraper):
-
+class ProductReviewsScraper(AbstractScraper):
     """Overriding 2 class-level attributes from superclass provides
     the ability to scrape product reviews data by ASIN(s).
     """
-
     target_url_template = "https://www.amazon.com/product-reviews/{}"
     cache_file_template = "reviews-{}.html"
