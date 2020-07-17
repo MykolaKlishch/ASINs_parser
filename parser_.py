@@ -35,12 +35,12 @@ class ProductInfoParser(Parser):
             r'<input type="hidden" id="ASIN" name="ASIN" value="(.*?)">'
         )
         self.product_name = self._by_regex(
-            r'<title>(Amazon.com\s?:\s?)?(.+?)( - - Amazon.com)?</title>',
+            r'<title>(Amazon.com\s?:\s?)?(.+?)( - - Amazon.com)?<\/title>',
             target_group=1
         )
         self.ratings = self._by_regex(
             r'<span id="acrCustomerReviewText" '
-            r'class="a-size-base">(.*?) ratings</span>',
+            r'class="a-size-base">(.*?) ratings<\/span>',
             convert=to_int
         )
         self.average_rating = self._by_regex(
@@ -49,7 +49,8 @@ class ProductInfoParser(Parser):
             convert=to_float
         )
         self.answered_questions = self._by_regex(
-            r'<span class="a-size-base">\n(.*?) answered questions\n</span>',
+            r'<span class="a-size-base">\n'
+            r'(.*?)\+? answered questions\n<\/span>',
             convert=to_int, if_none_return=0
         )
 
@@ -58,6 +59,15 @@ class ProductReviewParser(Parser):
 
     def __init__(self, raw_html):
         super().__init__(raw_html)
-        self.review_number = None
-        self.positive_review = None
-        self.critical_review = None
+        self.all_reviews = self._by_regex(
+            r'Showing [-\d]+ of (.*?) reviews',
+            convert=to_int, if_none_return=0
+        )
+        self.positive_reviews = self._by_regex(
+            r'See all (.*?) positive reviews',
+            convert=to_int, if_none_return=0
+        )
+        self.critical_reviews = self._by_regex(
+            r'See all (.*?) critical reviews',
+            convert=to_int, if_none_return=0
+        )
