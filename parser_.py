@@ -2,24 +2,29 @@ import re
 from html import unescape
 
 
+def to_int(match_string):
+    return int(match_string.replace(",", "").strip())
+
+
+def to_float(match_string):
+    return float(match_string.strip())
+
+
 class Parser:
 
     def __init__(self, raw_html):
         self.raw_html = unescape(raw_html)
 
     def _by_regex(self, regex, target_group=0,
-                  convert_into=None, if_none_return=None):
+                  convert=None, if_none_return=None):
         compiled_regex = re.compile(regex, flags=re.UNICODE)
         match_object = compiled_regex.search(self.raw_html)
         if match_object is None:
             return if_none_return
         match_group = match_object.groups()[target_group]
-        if convert_into == float:
-            return float(match_group.strip())
-        elif convert_into == int:
-            return int(match_group.replace(",", "").strip())
-        else:
+        if convert is None:
             return match_group
+        return convert(match_group)
 
 
 class ProductInfoParser(Parser):
@@ -36,16 +41,16 @@ class ProductInfoParser(Parser):
         self.ratings = self._by_regex(
             r'<span id="acrCustomerReviewText" '
             r'class="a-size-base">(.*?) ratings</span>',
-            convert_into=int
+            convert=to_int
         )
         self.average_rating = self._by_regex(
             r'<span id="acrPopover" class="reviewCountTextLinkedHistogram '
             r'noUnderline" title="(.*?) out of 5 stars">',
-            convert_into=float
+            convert=to_float
         )
         self.answered_questions = self._by_regex(
             r'<span class="a-size-base">\n(.*?) answered questions\n</span>',
-            convert_into=int, if_none_return=0
+            convert=to_int, if_none_return=0
         )
 
 
