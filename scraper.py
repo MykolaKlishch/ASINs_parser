@@ -4,10 +4,10 @@ import time
 from typing import Iterator, Sequence, Union, NoReturn
 
 
-class ProductInfoScraper:
+class Scraper:
 
-    """This class provide two methods to scrape product info by ASIN(s).
-    Features:
+    """This abstract class provide two methods to scrape webpages by ASIN(s).
+    The class should be subclassed!!! Features (available in subclasses):
       * scraping for a single ASIN using or multiple ASINs at once
         (using generator) with ProductInfoScraper.scrape_one() and
         ProductInfoScraper.scrape_many() methods respectively;
@@ -24,10 +24,13 @@ class ProductInfoScraper:
         ProductInfoScraper.unscraped_asins
       * Invalid ASINs (i.e. response with status code 404) are logged in
         ProductInfoScraper.invalid_asins
+    Overriding 2 class-level attributes from superclass provides different
+    behaviour of scraping methods - they retrieve different webpages
+    for the same ASIN and cache them under different names.
     """
 
-    target_url_template = "https://www.amazon.com/dp/{}"
-    cache_file_template = "{}.html"
+    target_url_template = None
+    cache_file_template = None
     zenscrape_url = "https://app.zenscrape.com/api/v1/get"
 
     def __init__(
@@ -171,12 +174,20 @@ class ProductInfoScraper:
         f_handle.write(product_html)
 
 
+class ProductInfoScraper(Scraper):
+
+    """Overriding 2 class-level attributes from superclass provides
+    the ability to scrape product info data by ASIN(s).
+    """
+
+    target_url_template = "https://www.amazon.com/dp/{}"
+    cache_file_template = "{}.html"
+
+
 class ProductReviewsScraper(ProductInfoScraper):
 
-    """This class provide two methods to scrape product review data by ASIN(s).
-    Overriding 2 class-level attributes from superclass changes behaviour
-    of scraping methods - they retrieve different webpage for the same ASIN
-    and caches it under different name
+    """Overriding 2 class-level attributes from superclass provides
+    the ability to scrape product reviews data by ASIN(s).
     """
 
     target_url_template = "https://www.amazon.com/product-reviews/{}"
