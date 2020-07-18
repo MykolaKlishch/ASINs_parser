@@ -108,7 +108,7 @@ class AbstractScraper:
                 os.mkdir(self.cache_dir)
         if use_cache and self._already_cached():
             product_html = self._get_product_html_from_cache()
-            print(f"Product page for ASIN {self.asin} retrieved from cache.")
+            print(f"Page for ASIN {self.asin} retrieved from cache.")
         else:
             print(f"Scraping page for ASIN {self.asin}...")
             product_html = self._get_product_html_from_web()
