@@ -59,18 +59,17 @@ def get_asins_from_csv_file(filename: str) -> List[str]:
 
 
 def scrape_parse_and_print(asins, scraper_class):
-    while asins:
-        scraper = scraper_class()
-        html_iterator = scraper.scrape_many(asins)
-        for html in html_iterator:
-            if html is not None:
-                parser = Parser()
-                if isinstance(scraper, ProductInfoScraper):
-                    parser.parse_product_info(html)
-                if isinstance(scraper, ProductReviewsScraper):
-                    parser.parse_product_reviews(html)
-                parser.show_parsing_results()
-        asins = scraper.unscraped_asins
+    scraper = scraper_class()
+    html_iterator = scraper.scrape_many(asins)
+    for asin, html in html_iterator:
+        if html is not None:
+            parser = Parser()
+            if isinstance(scraper, ProductInfoScraper):
+                parser.parse_product_info(html)
+            if isinstance(scraper, ProductReviewsScraper):
+                parser.parse_product_reviews(html)
+            parser.show_parsing_results()
+    assert not scraper.unscraped_asins
 
 
 def main():

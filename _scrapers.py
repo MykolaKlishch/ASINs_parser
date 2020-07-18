@@ -1,7 +1,7 @@
 import os
 import requests
 import time
-from typing import Iterator, Sequence, Union, NoReturn
+from typing import Iterable, Sequence, Tuple, Union, NoReturn
 
 
 class AbstractScraper:
@@ -48,32 +48,56 @@ class AbstractScraper:
         self.unscraped_asins = []
         self.invalid_asins = []
 
-    def scrape_many(self, asins: Sequence[str],
-                    *, use_cache=True) -> Iterator:
-        """Generator which produces iterable of scraped
-        webpages and None values (for unsuccessful scraping).
+    def scrape_many(self, asins: Sequence[str], 
+                    *, use_cache=True, max_iterations=5,
+                    ) -> Iterable[Tuple[str, str]]:
+        """Method is a generator which yields tuples. Each tuple
+        consists of ASIN and html of a scraped web page.
+
+        At the first scraping iteration, it tries to scrape web pages
+        for all ASINs that were passed to it. If the scraping for any
+        ASIN was unsuccessful or ASIN appeared to be invalid (response
+        status code was 404), generator does not yield anything.
+
+        If webpages for some ASINs were not scraped, the method loads
+        the list of unscraped ASINs from the previous iteration and
+        tries to scrape the web pages for them in the next iteration.
+        If invalid ASIN appeared in the original list, scraping attempt
+        for it is not repeated.
+
+        Generator stops if the web pages for all valid ASINs have been
+        scraped or if it completed max number of iterations allowed.
 
         :param asins: sequence of ASINs for scraping;
         :param use_cache: if True: 1) raw html is being retrieved
         from cached files and 2) scraped pages are being cached;
-        :return: iterator of str values (for successful scraping)
+        :param max_iterations: highest number of scraping iterations allowed
+        :return: iterable of tuples (asin, html)
         and None values (for unsuccessful scraping).
         """
-        for iteration, asin in enumerate(asins):
-            print(f"\nASIN {asin} ({iteration + 1} of {len(asins)}):")
-            product_html = self.scrape_one(
-                asin, use_cache=use_cache, iteration=iteration)
-            yield product_html
+        scraping_iteration = 1
+        while asins and scraping_iteration <= max_iterations:
+            self.unscraped_asins.clear()
+            print(f"\nScraping iteration {scraping_iteration} "
+                  f"({len(asins)} ASIN(s) to scrape):")
+            for number, asin in enumerate(asins):
+                print(f"\nASIN {asin} ({number + 1} of {len(asins)}):")
+                product_html = self.scrape_one(
+                    asin, use_cache=use_cache, last=(number + 1 == len(asins)))
+                if product_html is not None:
+                    yield asin, product_html
+            asins = self.unscraped_asins[:]
+            scraping_iteration += 1
 
     def scrape_one(self, asin: str,
-                   *, use_cache=True, iteration=0) -> Union[str, None]:
+                   *, use_cache=True, last=False) -> Union[str, None]:
         """Performs scraping for a single ASIN.
 
         :param asin: ASIN for scraping
         :param use_cache: if True: 1) raw html is being retrieved
         from cached files and 2) scraped pages are being cached;
-        :param iteration: if method is called from scrape_many,
-        this parameter is used to adjust delay
+        :param last: if method is called from scrape_many, and this asin
+        is the last one, no delay is required
         :return: raw html (for successful scraping)
         or None (for unsuccessful scraping)
         """
@@ -96,7 +120,7 @@ class AbstractScraper:
                 print(f"Page for ASIN {self.asin} retrieved successfully!")
                 if use_cache:
                     self._cache_product_html(product_html)
-            if iteration > 0:
+            if not last:
                 print(f"Next request after {self.delay} seconds...")
                 time.sleep(self.delay)
         return product_html
