@@ -141,6 +141,11 @@ class ProductReviewParser(AbstractParser):
     def parse(self, raw_html: str) -> NoReturn:
         """Extracts attribute values from raw html.
 
+        DISCLAIMER: Sometimes there is only total number of reviews on
+        the page or numbers of positive and critical reviews do not
+        add up. Parser DOES NOT modify the values in such cases but
+        leaves them as they are.
+
         :param raw_html: html to be parsed
         :return: None
         """
