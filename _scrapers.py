@@ -167,6 +167,7 @@ class AbstractScraper:
         nor 404 or b) status code is 200 but the text from response
         cannot be passed to parser because its contents are different
         from expected.
+
         :param response: requests.Response instance to be analyzed.
         :return: None
         """
@@ -184,6 +185,7 @@ class AbstractScraper:
     @staticmethod
     def _text_is_ok(response_text) -> bool:
         """Checks text for response with status code == 200.
+
         :return True if the text can be passed to parser, False otherwise.
         """
         exhausted = ('{"error":"Not enough requests."}' in response_text)

@@ -14,7 +14,7 @@ import sys
 from typing import Union, List
 
 from _scrapers import ProductInfoScraper, ProductReviewsScraper
-from _parser import Parser
+from _parsers import ProductInfoParser, ProductReviewParser
 
 DEFAULT_FILENAME = os.path.join(os.getcwd(), "Asins sample.csv")
 
@@ -58,38 +58,43 @@ def get_asins_from_csv_file(filename: str) -> List[str]:
         return asins
 
 
-def scrape_parse_and_print(asins, scraper_class):
+def scrape_parse_and_print(asins, scraper_class, parser_class):
+    """Can be called for diagnostics."""
     scraper = scraper_class()
-    html_iterator = scraper.scrape_many(asins)
-    for asin, html in html_iterator:
+    html_generator = scraper.scrape_many(asins)
+    for asin, html in html_generator:
         if html is not None:
-            parser = Parser()
-            if isinstance(scraper, ProductInfoScraper):
-                parser.parse_product_info(html)
-            if isinstance(scraper, ProductReviewsScraper):
-                parser.parse_product_reviews(html)
+            parser = parser_class()
+            parser.parse(html)
             parser.show_parsing_results()
-    assert not scraper.unscraped_asins
 
 
 def main():
     csv_filename = get_filename_from_cmd()
     asins = get_asins_from_csv_file(csv_filename)
 
+    engine = create_engine(
+        "postgres://postgres:1111@localhost:5432/postgres"
+    )
+    metadata = MetaData()
+    metadata.create_all(engine)
+
     scrape_parse_and_print(
         asins=asins,
         scraper_class=ProductInfoScraper,
+        parser_class=ProductInfoParser
     )
     scrape_parse_and_print(
         asins=asins,
         scraper_class=ProductReviewsScraper,
+        parser_class=ProductReviewParser
     )
 
-    # engine = create_engine(
-    #     "postgres://postgres:1111@localhost:5432/postgres"
-    # )
-    # metadata = MetaData()
-    # metadata.create_all(engine)
+    engine = create_engine(
+        "postgres://postgres:1111@localhost:5432/postgres"
+    )
+    metadata = MetaData()
+    metadata.create_all(engine)
 
 
 if __name__ == "__main__":
