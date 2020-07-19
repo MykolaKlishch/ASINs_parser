@@ -1,6 +1,7 @@
 import re
 from html import unescape
 from typing import NoReturn
+from datetime import datetime
 
 
 def to_int(match_string: str) -> int:
@@ -13,7 +14,6 @@ def to_float(match_string: str) -> float:
 
 
 class AbstractParser:
-
     """A base class for regex parsers."""
 
     def __init__(self):
@@ -41,16 +41,36 @@ class AbstractParser:
             return match_group
         return convert(match_group)
 
+    def print_parsing_results(self) -> NoReturn:
+        """Can be called after parsing for diagnostics. Base class method
+        is empty and should be overridden in subclasses.
+        """
+        pass
+
+    def upload_to_db(self, conn, table, asin) -> NoReturn:
+        """Uploads attributes of the parser instance to the specified
+        table in the database specified by connection instance. Base
+        class method is empty and should be overridden in subclasses.
+
+        :param conn: sqlalchemy.engine.Connection instance
+        :param table: sqlalchemy.sql.schema.Table instance. Column
+        names must comply with the attributes of the instance.
+        :param asin: parameter that is not present among the instance
+        attributes and therefore should be passed to the method.
+        :return: None
+        """
+        pass
+
 
 class ProductInfoParser(AbstractParser):
-
-    """Instances of this class can be used to parse html with product info.
-    Extracted values are saved as the instance attributes.
+    """Instances of this class can be used to parse html with product
+    info. Extracted values are saved as the instance attributes.
+    Parser can print the values of its attributes or load them
+    to the database.
     """
 
     def __init__(self):
         super().__init__()
-        self.asin = None
         self.product_name = None
         self.total_ratings = None
         self.average_rating = None
@@ -83,18 +103,33 @@ class ProductInfoParser(AbstractParser):
             convert=to_int, if_no_match_return=0
         )
 
-    def show_parsing_results(self) -> NoReturn:
-        """Can be called after parsing for diagnostics."""
+    def print_parsing_results(self) -> NoReturn:
         print("# product_name:\t\t\t", self.product_name)
-        print("# ratings:\t\t\t\t", self.total_ratings)
+        print("# total_ratings:\t\t\t\t", self.total_ratings)
         print("# average_rating:\t\t", self.average_rating)
         print("# answered_questions:\t", self.answered_questions)
+
+    def upload_to_db(self, conn, table, asin) -> NoReturn:
+        print("Uploading into the database...")
+        conn.execute(
+            table.insert().values(
+                recorded_at=datetime.now(),
+                asin=asin,
+                product_name=self.product_name,
+                total_ratings=self.total_ratings,
+                average_rating=self.average_rating,
+                answered_questions=self.answered_questions
+            )
+        )
+        print("Uploaded successfully!")
 
 
 class ProductReviewParser(AbstractParser):
 
     """Instances of this class can be used to parse html with product
     reviews. Extracted values are saved as the instance attributes.
+    Parser can print the values of its attributes or load them
+    to the database.
     """
 
     def __init__(self):
@@ -123,8 +158,20 @@ class ProductReviewParser(AbstractParser):
             convert=to_int, if_no_match_return=0
         )
 
-    def show_parsing_results(self) -> NoReturn:
-        """Can be called after parsing for diagnostics."""
+    def print_parsing_results(self) -> NoReturn:
         print("# total_reviews\t\t\t", self.total_reviews)
         print("# positive_reviews\t\t", self.positive_reviews)
         print("# critical_reviews\t\t", self.critical_reviews)
+
+    def upload_to_db(self, conn, table, asin) -> NoReturn:
+        print("Uploading into the database...")
+        conn.execute(
+            table.insert().values(
+                recorded_at=datetime.now(),
+                asin=asin,
+                total_reviews=self.total_reviews,
+                positive_reviews=self.positive_reviews,
+                critical_reviews=self.critical_reviews
+            )
+        )
+        print("Uploaded successfully!")
