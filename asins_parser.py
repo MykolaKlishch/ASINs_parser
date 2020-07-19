@@ -1,11 +1,23 @@
-# TODO add docstring - it will be used as description
-#  in ArgumentParser object as well
+"""This script preforms the following:
+1.  Download ASINs list from a CSV file and saves them in the database.
+2.  Scrapes product web pages for each ASIN, parses them and saves
+    the following info in the database:
+      * product name;
+      * total ratings;
+      * average rating;
+      * number of answered questions;
+3. Scrapes web pages with product reviews for each ASIN, parses them and saves
+    the following info in the database:
+      * total reviews;
+      * number of positive reviews;
+      * number of critical_reviews.
+"""
 
 import argparse
 import csv
 import os
 from datetime import datetime
-from typing import Union, List
+from typing import Union, List, Set
 
 from sqlalchemy import (create_engine, MetaData, Table, Column, Integer, Float,
                         String, DateTime, ForeignKey)
@@ -41,7 +53,7 @@ def valid_filename(filename: str) -> str:
     return filename
 
 
-def get_asins_from_csv_file(filename: str) -> List[str]:
+def get_asins_from_csv_file(filename: str) -> Set[str]:
     """Gets ASINs from CSV file. The file should not contain headers and
     ASINs should be stored in a single column.
 
@@ -50,13 +62,38 @@ def get_asins_from_csv_file(filename: str) -> List[str]:
     """
     with open(file=filename, mode="rt", encoding="utf-8-sig") as file_handle:
         reader = csv.reader(file_handle)
-        asins = list(map(list.pop, reader))
+        asins = set(map(list.pop, reader))
         return asins
 
 
-# todo remove redundant functions!!!
-def scrape_parse_and_print(asins, scraper_class, parser_class):
-    """Can be called for diagnostics."""
+def format_db_url(
+        dialect="postgresql",
+        driver="psycopg2",
+        host="asins-db-instance.cvkioejijss6.eu-central-1.rds.amazonaws.com",
+        port="5432",
+        database="postgres"
+):
+    print("Type your credentials to connect "
+          "to the Amazon RDS DB instance:")
+    username = input("username: ").strip()
+    password = input("password: ").strip()
+    db_url = f"{dialect}+{driver}://{username}:{password}" \
+             f"@{host}:{port}/{database}"
+    return db_url
+
+
+def scrape_parse_print_and_insert(asins, *, scraper_class,
+                                  parser_class, table, connection):
+    """For a given list of ASINs, performs full cycle of scraping,
+    parsing and data uploading
+
+    :param asins: list of ASINs
+    :param scraper_class: scraper class to be used
+    :param parser_class: parser class to be used
+    :param table: a table for saving parsing results
+    :param connection: sqlalchemy.engine.Connection instance
+    :return: None
+    """
     scraper = scraper_class()
     html_generator = scraper.scrape_many(asins)
     for asin, html in html_generator:
@@ -64,30 +101,28 @@ def scrape_parse_and_print(asins, scraper_class, parser_class):
             parser = parser_class()
             parser.parse(html)
             parser.print_parsing_results()
+            parser.upload_to_db(conn=connection, asin=asin, table=table)
 
 
-def format_db_url(
-        dialect="postgresql",
-        driver="psycopg2",
-        username="postgres",  # input("password: ").strip(),
-        password="kgz4f7ZahFc0LghRwMKX",  # input("password: ").strip(),
-        # todo Change password for the master DB instance user after testing!.
-        host="asins-db-instance.cvkioejijss6.eu-central-1.rds.amazonaws.com",
-        port="5432",
-        database="postgres"
-):
-    # print("Type your credentials to connect"
-    #       "to the Amazon RDS DB instance:")
-    db_url = f"{dialect}+{driver}://{username}:{password}" \
-          f"@{host}:{port}/{database}"
-    return db_url
+def proceed_or_exit():
+    inp_msg = ("\nData for all ASINs have been scraped, parsed and uploaded "
+               "to the database. \nWould you like to print the contents "
+               "of the tables? (y|n)\n")
+    while True:
+        choice = input(inp_msg).strip()
+        if choice in "Nn":
+            exit()
+        elif choice in "Yy":
+            break
+        else:
+            inp_msg = "Press (y|n) to choose"
 
 
-def test_engine(engine):
-    with engine.connect() as conn:
-        query_results = conn.execute("""SELECT now()""")
-        for query_result in query_results:
-            print(query_result)
+def select_and_print(table, connection):
+    print(f"\nSelecting rows from '{table.name}' table...")
+    print(table.columns)
+    selected_rows = connection.execute(table.select())
+    print(*selected_rows, sep="\n")
 
 
 def main():
@@ -136,63 +171,37 @@ def main():
     with engine.connect() as connection:
 
         for asin in asins:
-            connection.execute(
-                asins_table.insert().values(
-                    asin=asin,
-                    recorded_at=datetime.now()
-                )
-            )
+            connection.execute(asins_table.insert().values(
+                asin=asin, recorded_at=datetime.now()))
+        scrape_parse_print_and_insert(
+            asins=asins,
+            scraper_class=ProductInfoScraper,
+            parser_class=ProductInfoParser,
+            table=product_info_table,
+            connection=connection
+        )
+        scrape_parse_print_and_insert(
+            asins=asins,
+            scraper_class=ProductReviewsScraper,
+            parser_class=ProductReviewParser,
+            table=product_reviews_table,
+            connection=connection
+        )
 
-        scraper = ProductInfoScraper()
-        html_generator = scraper.scrape_many(asins)
-        for asin, html in html_generator:
-            if html is not None:
-                parser = ProductInfoParser()
-                parser.parse(html)
-                parser.print_parsing_results()
-                parser.upload_to_db(conn=connection, asin=asin,
-                                    table=product_info_table)
+        proceed_or_exit()
 
-        scraper = ProductReviewsScraper()
-        html_generator = scraper.scrape_many(asins)
-        for asin, html in html_generator:
-            if html is not None:
-                parser = ProductReviewParser()
-                parser.parse(html)
-                parser.print_parsing_results()
-                parser.upload_to_db(conn=connection, asin=asin,
-                                    table=product_reviews_table)
-
-        print("Selecting uploaded rows...")
-        select_statement = asins_table.select()
-        select_result = connection.execute(select_statement)
-        for row in select_result:
-            print("&&| ", row)
-
-        print("Selecting uploaded rows...")
-        select_statement = product_info_table.select()
-        select_result = connection.execute(select_statement)
-        for row in select_result:
-            print("&&| ", row)
-
-        print("Selecting uploaded rows...")
-        select_statement = product_info_table.select()
-        select_result = connection.execute(select_statement)
-        for row in select_result:
-            print("&&| ", row)
-
-    exit()  # todo remove after completing
-
-    scrape_parse_and_print(
-        asins=asins,
-        scraper_class=ProductInfoScraper,
-        parser_class=ProductInfoParser
-    )
-    scrape_parse_and_print(
-        asins=asins,
-        scraper_class=ProductReviewsScraper,
-        parser_class=ProductReviewParser
-    )
+        select_and_print(
+            table=asins_table,
+            connection=connection
+        )
+        select_and_print(
+            table=product_info_table,
+            connection=connection
+        )
+        select_and_print(
+            table=product_reviews_table,
+            connection=connection
+        )
 
 
 if __name__ == "__main__":

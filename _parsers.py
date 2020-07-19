@@ -105,7 +105,7 @@ class ProductInfoParser(AbstractParser):
 
     def print_parsing_results(self) -> NoReturn:
         print("# product_name:\t\t\t", self.product_name)
-        print("# total_ratings:\t\t\t\t", self.total_ratings)
+        print("# total_ratings:\t\t", self.total_ratings)
         print("# average_rating:\t\t", self.average_rating)
         print("# answered_questions:\t", self.answered_questions)
 
