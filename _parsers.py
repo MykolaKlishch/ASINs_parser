@@ -125,6 +125,6 @@ class ProductReviewParser(AbstractParser):
 
     def show_parsing_results(self) -> NoReturn:
         """Can be called after parsing for diagnostics."""
-        print("$ total_reviews\t\t\t", self.total_reviews)
-        print("$ positive_reviews\t\t", self.positive_reviews)
-        print("$ critical_reviews\t\t", self.critical_reviews)
+        print("# total_reviews\t\t\t", self.total_reviews)
+        print("# positive_reviews\t\t", self.positive_reviews)
+        print("# critical_reviews\t\t", self.critical_reviews)

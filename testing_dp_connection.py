@@ -1,39 +1,39 @@
-"""
-Details:
+# import psycopg2
+# import time
+from sqlalchemy import create_engine, MetaData
 
-Connecting to Your DB Instance Using IAM Authentication and
-the AWS SDK for Python (Boto3)
+print("Type your credentials to connect to the Amazon RDS database instance:")
 
-https://docs.aws.amazon.com/AmazonRDS/latest
-/UserGuide/UsingWithRDS.IAMDBAuth.Connecting.Python.html#UsingWithRDS.
-IAMDBAuth.Connecting.Python.AuthToken.Connect
-"""
+dialect = "postgresql"
+driver = "psycopg2"
+username = input("username: ").strip()
+password = input("password: ").strip()
+host = "asins-db-instance.cvkioejijss6.eu-central-1.rds.amazonaws.com"
+port = "5432"
+database = "postgres"
 
+db_url = f"{dialect}+{driver}://{username}:{password}@{host}:{port}/{database}"
+engine = create_engine(db_url)
 
-import psycopg2
-import sys
-import boto3
+with engine.connect() as conn:
+    query_results = conn.execute("""SELECT now()""")
+    for query_result in query_results:
+        print(query_result)
 
-ENDPOINT = "database-1.cvkioejijss6.eu-central-1.rds.amazonaws.com"
-PORT = "5432"
-USR = input("USR: ").strip()
-REGION = "eu-central-1"
-DBNAME = "postgres"
-
-# gets the credentials from .aws/credentials
-session = boto3.Session(profile_name='default')
-client = boto3.client('rds')
-
-token = client.generate_db_auth_token(
-    DBHostname=ENDPOINT, Port=PORT, DBUsername=USR, Region=REGION
-)
-
-try:
-    conn = psycopg2.connect(host=ENDPOINT, port=PORT, database=DBNAME,
-                            user=USR, password=token)
-    cur = conn.cursor()
-    cur.execute("""SELECT now()""")
-    query_results = cur.fetchall()
-    print(query_results)
-except Exception as e:
-    print("Database connection failed due to {}".format(e))
+# print("Type your credentials to connect to the Amazon RDS database instance:")
+#
+# try:
+#     conn = psycopg2.connect(
+#         database="postgres",
+#         user=input("username: ").strip(),
+#         password=input("password: ").strip(),
+#         host="asins-db-instance.cvkioejijss6.eu-central-1.rds.amazonaws.com",
+#         port="5432"
+#     )
+# except Exception as e:
+#     print("Database connection failed due to {}".format(e))
+# else:
+#     cur = conn.cursor()
+#     cur.execute("""SELECT now()""")
+#     query_results = cur.fetchall()
+#     print(query_results)
