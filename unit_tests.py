@@ -1,11 +1,9 @@
 import argparse
-import os
-import re
 import unittest
 
 from _parsers import ProductInfoParser, ProductReviewParser
 from main import (DEFAULT_FILENAME, get_filename_from_cmd, valid_filename,
-                  get_asins_from_csv_file, )
+                  get_asins_from_csv_file)
 
 
 class TestCmdArgumentParsing(unittest.TestCase):
