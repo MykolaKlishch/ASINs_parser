@@ -124,7 +124,7 @@ class ProductInfoParser(AbstractParser):
         print("Uploaded successfully!")
 
 
-class ProductReviewParser(AbstractParser):
+class ProductReviewsParser(AbstractParser):
 
     """Instances of this class can be used to parse html with product
     reviews. Extracted values are saved as the instance attributes.

@@ -1,7 +1,7 @@
 import argparse
 import unittest
 
-from _parsers import ProductInfoParser, ProductReviewParser
+from parsers import ProductInfoParser, ProductReviewsParser
 from main import (DEFAULT_FILENAME, get_filename_from_cmd, valid_filename,
                   get_asins_from_csv_file)
 
@@ -129,19 +129,19 @@ class TestParsersMatchingAccuracy(unittest.TestCase):
         self.assertEqual(parser.answered_questions, 1000)
 
     def test_total_reviews_extraction(self):
-        parser = ProductReviewParser()
+        parser = ProductReviewsParser()
         html = 'class="a-size-base">Showing 1-10 of 1,863 reviews</span>'
         parser.parse(html)
         self.assertEqual(parser.total_reviews, 1863)
 
     def test_positive_reviews_extraction(self):
-        parser = ProductReviewParser()
+        parser = ProductReviewsParser()
         html = 'filterByStar=positive">See all 1,664 positive reviews</a>'
         parser.parse(html)
         self.assertEqual(parser.positive_reviews, 1664)
 
     def test_critical_reviews_extraction(self):
-        parser = ProductReviewParser()
+        parser = ProductReviewsParser()
         html = 'filterByStar=critical">See all 199 critical reviews</a>'
         parser.parse(html)
         self.assertEqual(parser.critical_reviews, 199)

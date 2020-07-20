@@ -149,7 +149,7 @@ class AbstractScraper:
                 url=self.zenscrape_url, timeout=60,
                 headers={"apikey": self.apikey},
                 params={"url": self.target_url_template.format(self.asin)})
-        except requests.exceptions.ReadTimeout:
+        except requests.exceptions.RequestException:
             return None
         self._adjust_delay_and_update_logs(response)
         if self.asin not in self.unscraped_asins + self.invalid_asins:

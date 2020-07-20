@@ -23,8 +23,8 @@ from typing import Union, List, Iterable, Any
 from sqlalchemy import (create_engine, MetaData, Table, Column, Integer, Float,
                         String, DateTime, ForeignKey)
 
-from _parsers import ProductInfoParser, ProductReviewParser
-from _scrapers import ProductInfoScraper, ProductReviewsScraper
+from parsers import ProductInfoParser, ProductReviewsParser
+from scrapers import ProductInfoScraper, ProductReviewsScraper
 
 DEFAULT_FILENAME = os.path.join(os.getcwd(), "Asins sample.csv")
 
@@ -222,7 +222,7 @@ def main():
         scrape_parse_print_and_insert(
             asins=asins,
             scraper_class=ProductReviewsScraper,
-            parser_class=ProductReviewParser,
+            parser_class=ProductReviewsParser,
             table=product_reviews_table,
             connection=connection
         )
