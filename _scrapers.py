@@ -144,10 +144,13 @@ class AbstractScraper:
         :return: raw html (for successful scraping)
         or None (for unsuccessful scraping)
         """
-        response = requests.get(
-            url=self.zenscrape_url, timeout=60,
-            headers={"apikey": self.apikey},
-            params={"url": self.target_url_template.format(self.asin)})
+        try:
+            response = requests.get(
+                url=self.zenscrape_url, timeout=60,
+                headers={"apikey": self.apikey},
+                params={"url": self.target_url_template.format(self.asin)})
+        except requests.exceptions.ReadTimeout:
+            return None
         self._adjust_delay_and_update_logs(response)
         if self.asin not in self.unscraped_asins + self.invalid_asins:
             return response.text

@@ -75,7 +75,7 @@ def format_db_url(
         host="asins-db-instance.cvkioejijss6.eu-central-1.rds.amazonaws.com",
         port="5432",
         database="postgres"
-):
+) -> str:
     print("Type your credentials to connect "
           "to the Amazon RDS DB instance:")
     username = input("username: ").strip()
@@ -122,7 +122,7 @@ def proceed_or_exit():
 
 
 def select_and_print(table, connection):
-    print(f"\nSelecting all rows from '{table.name}' table...")
+    print(f"\nSelecting all rows from '{table.name}' table...\n")
     selected_rows = connection.execute(table.select())
     pretty_print_query_result(
         headers=[str(full_coll_name).split(".")[-1]
