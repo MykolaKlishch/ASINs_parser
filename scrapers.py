@@ -49,7 +49,7 @@ class AbstractScraper:
         self.invalid_asins = []
 
     def scrape_many(self, asins: Sequence[str], 
-                    *, use_cache=True, max_iterations=5,
+                    *, use_cache=True, max_iterations=20,
                     ) -> Iterable[Tuple[str, str]]:
         """Method is a generator which yields tuples. Each tuple
         consists of ASIN and html of a scraped web page.
