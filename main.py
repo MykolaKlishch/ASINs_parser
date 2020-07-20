@@ -1,4 +1,4 @@
-"""This script preforms the following:
+"""This script performs the following:
 1.  Download ASINs list from a CSV file and saves them in the database.
 2.  Scrapes product web pages for each ASIN, parses them and saves
     the following info in the database:
@@ -16,8 +16,9 @@
 import argparse
 import csv
 import os
+import re
 from datetime import datetime
-from typing import Union, List, Set
+from typing import Union, List, Iterable, Any
 
 from sqlalchemy import (create_engine, MetaData, Table, Column, Integer, Float,
                         String, DateTime, ForeignKey)
@@ -75,7 +76,7 @@ def format_db_url(
         port="5432",
         database="postgres"
 ):
-    print("Type your credentials to connect\n"
+    print("Type your credentials to connect "
           "to the Amazon RDS DB instance:")
     username = input("username: ").strip()
     password = input("password: ").strip()
@@ -121,10 +122,46 @@ def proceed_or_exit():
 
 
 def select_and_print(table, connection):
-    print(f"\nSelecting rows from '{table.name}' table...")
-    print(table.columns)
+    print(f"\nSelecting all rows from '{table.name}' table...")
     selected_rows = connection.execute(table.select())
-    print(*selected_rows, sep="\n")
+    pretty_print_query_result(
+        headers=[str(full_coll_name).split(".")[-1]
+                 for full_coll_name in table.columns],
+        records=selected_rows
+    )
+
+
+def pretty_print_query_result(headers, records, truncate_after=26):
+    """Prints query result as a table.
+    Automatically detects column width.
+    """
+    def _align_fields(column: Iterable[Any]) -> Iterable[str]:
+        """Transforms all values in the column
+        into str type and unifies their length.
+        """
+        def _align_cell(field: str) -> str:
+            if max_length <= truncate_after:
+                return f"{field: ^{max_length}}"
+            elif len(field) > truncate_after:
+                field = field[:truncate_after] + '...'
+            return f"{field: ^{truncate_after + 3}}"
+
+        column_str_only = tuple(map(str, column))
+        max_length = max(map(len, column_str_only))
+        return map(_align_cell, column_str_only)
+
+    def _join_row(row: Iterable[str]) -> str:
+        return " │ ".join(row)
+
+    columns = zip(headers, *records)
+    columns_aligned = map(_align_fields, columns)
+    records_aligned = zip(*columns_aligned)
+    records_strings = map(_join_row, records_aligned)
+    headers_aligned = next(records_strings)
+    header_body_sep = re.sub(
+        "│", "┼", re.sub("[^│]", "─", headers_aligned))
+    print(headers_aligned, header_body_sep,
+          *records_strings, sep="\n")
 
 
 def main():

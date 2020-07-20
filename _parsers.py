@@ -104,10 +104,10 @@ class ProductInfoParser(AbstractParser):
         )
 
     def print_parsing_results(self) -> NoReturn:
-        print("# product_name:\t\t\t", self.product_name)
-        print("# total_ratings:\t\t", self.total_ratings)
-        print("# average_rating:\t\t", self.average_rating)
-        print("# answered_questions:\t", self.answered_questions)
+        print(f" * {'product_name': <25}{self.product_name}")
+        print(f" * {'total_ratings': <25}{self.total_ratings}")
+        print(f" * {'average_rating': <25}{self.average_rating}")
+        print(f" * {'answered_questions': <25}{self.answered_questions}")
 
     def upload_to_db(self, conn, table, asin) -> NoReturn:
         print("Uploading into the database...")
@@ -164,9 +164,9 @@ class ProductReviewParser(AbstractParser):
         )
 
     def print_parsing_results(self) -> NoReturn:
-        print("# total_reviews\t\t\t", self.total_reviews)
-        print("# positive_reviews\t\t", self.positive_reviews)
-        print("# critical_reviews\t\t", self.critical_reviews)
+        print(f" * {'total_reviews': <25}{self.total_reviews}")
+        print(f" * {'positive_reviews': <25}{self.positive_reviews}")
+        print(f" * {'critical_reviews': <25}{self.critical_reviews}")
 
     def upload_to_db(self, conn, table, asin) -> NoReturn:
         print("Uploading into the database...")
