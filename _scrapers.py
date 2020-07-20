@@ -133,9 +133,9 @@ class AbstractScraper:
         return os.path.isfile(self.cache_file)
 
     def _get_product_html_from_cache(self) -> str:
-        f_handle = open(file=self.cache_file, mode="rt", encoding="utf-8-sig")
-        product_html = f_handle.read()
-        return product_html
+        with open(file=self.cache_file, mode="rt", encoding="utf-8-sig") as f:
+            product_html = f.read()
+            return product_html
 
     def _get_product_html_from_web(self) -> Union[str, None]:
         """Makes request, modifies Scraper instance

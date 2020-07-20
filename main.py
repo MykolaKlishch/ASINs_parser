@@ -30,6 +30,7 @@ DEFAULT_FILENAME = os.path.join(os.getcwd(), "Asins sample.csv")
 
 def get_filename_from_cmd(args: Union[List[str], None] = None) -> str:
     """Get the filename as command line argument -i.
+
     :param args: List of strings to parse. If args is None, sys.argv is used
     :return: filename
     """
@@ -54,7 +55,7 @@ def valid_filename(filename: str) -> str:
     return filename
 
 
-def get_asins_from_csv_file(filename: str) -> Set[str]:
+def get_asins_from_csv_file(filename: str) -> List[str]:
     """Gets ASINs from CSV file. The file should not contain headers and
     ASINs should be stored in a single column.
 
@@ -63,7 +64,7 @@ def get_asins_from_csv_file(filename: str) -> Set[str]:
     """
     with open(file=filename, mode="rt", encoding="utf-8-sig") as file_handle:
         reader = csv.reader(file_handle)
-        asins = set(map(list.pop, reader))
+        asins = sorted(set(map(list.pop, reader)))
         return asins
 
 
@@ -74,19 +75,19 @@ def format_db_url(
         port="5432",
         database="postgres"
 ):
-    print("Type your credentials to connect "
+    print("Type your credentials to connect\n"
           "to the Amazon RDS DB instance:")
     username = input("username: ").strip()
     password = input("password: ").strip()
-    db_url = f"{dialect}+{driver}://{username}:{password}" \
-             f"@{host}:{port}/{database}"
+    db_url = \
+        f"{dialect}+{driver}://{username}:{password}@{host}:{port}/{database}"
     return db_url
 
 
 def scrape_parse_print_and_insert(asins, *, scraper_class,
                                   parser_class, table, connection):
     """For a given list of ASINs, performs full cycle of scraping,
-    parsing and data uploading
+    parsing and data uploading.
 
     :param asins: list of ASINs
     :param scraper_class: scraper class to be used

@@ -84,13 +84,13 @@ class ProductInfoParser(AbstractParser):
         """
         self.raw_html = unescape(raw_html)
         self.product_name = self._parse_with_regex(
-            r'<title>(Amazon.com\s?:\s?)?(.+?)( - - Amazon.com)?<\/title>',
+            r'<title>(Amazon.com\s*:\s*)?(.+?)(\s*- - Amazon.com)?<\/title>',
             target_group=1
         )
         self.total_ratings = self._parse_with_regex(
             r'<span id="acrCustomerReviewText" '
             r'class="a-size-base">(.*?) ratings<\/span>',
-            convert=to_int
+            convert=to_int, if_no_match_return=0
         )
         self.average_rating = self._parse_with_regex(
             r'<span id="acrPopover" class="reviewCountTextLinkedHistogram '
