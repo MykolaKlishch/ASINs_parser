@@ -1,6 +1,6 @@
 import unittest
 import argparse
-from asins_parser import (
+from main import (
     DEFAULT_FILENAME,
     get_filename_from_cmd,
     valid_filename,

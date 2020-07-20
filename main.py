@@ -25,6 +25,8 @@ from sqlalchemy import (create_engine, MetaData, Table, Column, Integer, Float,
 from _parsers import ProductInfoParser, ProductReviewParser
 from _scrapers import ProductInfoScraper, ProductReviewsScraper
 
+DEFAULT_FILENAME = os.path.join(os.getcwd(), "Asins sample.csv")
+
 
 def get_filename_from_cmd(args: Union[List[str], None] = None) -> str:
     """Get the filename as command line argument -i.
@@ -32,8 +34,7 @@ def get_filename_from_cmd(args: Union[List[str], None] = None) -> str:
     :return: filename
     """
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-i", type=valid_filename,
-                        default=os.path.join(os.getcwd(), "Asins sample.csv"),
+    parser.add_argument("-i", type=valid_filename, default=DEFAULT_FILENAME,
                         help="Abs. or rel. filename of CSV file with ASINs.")
     arguments = parser.parse_args(args=args)
     filename = arguments.i
